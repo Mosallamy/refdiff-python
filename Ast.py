@@ -1,6 +1,8 @@
 import ast
+
 r = open('example.py','r')
 t = ast.parse(r.read())
+
 import asttokens
 
 class allnames(ast.NodeVisitor):
