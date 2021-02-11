@@ -57,6 +57,18 @@ def getFunctionParent(node):
         currentNode = stack.pop()
         for child in currentNode.get_children():
             stack.append(child)
+            has_body = "True"
+            try:
+                if(child.body):
+                    pass
+                """
+                Remove comments if you consider a function with just pass had no body
+                if isinstance(child.body[0], astroid.node_classes.Pass): 
+                    has_body="False"
+                """
+
+            except:
+                has_body = "False"
             if isinstance(child,astroid.FunctionDef):
                 functionNodes[child.name] = child.parent.name
                 jsonData.append({
@@ -64,8 +76,19 @@ def getFunctionParent(node):
                     "parent": child.parent.name,
                     "name": child.name,
                     "parameters": [a.name for a in child.args.args],
-                    "line": child.lineno
+                    "line": child.lineno,
+                    "has_body" : has_body
                 })
+            if isinstance(child, astroid.ClassDef):
+                jsonData.append({
+                    "type": "Class",
+                    "parent": child.parent.name,
+                    "name": child.name,
+                    "parameters": 'None',
+                    "line": child.lineno,
+                    "has_body": has_body
+                })
+
     return functionNodes
 
 
@@ -74,13 +97,14 @@ with open("example.py","r") as file:
     code = file.read()
 
 parsedCode = astroid.parse(code)
-funtionParent = getFunctionParent(parsedCode)
+getFunctionParent(parsedCode)
 
 
 atok = asttokens.ASTTokens(code, parse=True)
 
 [get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.Module)]#gets tokens for module
 [get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef)]#gets tokens for functions
+[get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.ClassDef)]#gets tokens for functions
 
 print("[")
 for i in jsonData:
