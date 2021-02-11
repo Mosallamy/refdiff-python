@@ -3,44 +3,8 @@ import json
 import asttokens
 import astroid
 
+
 jsonData = list()
-
-r = open('example.py','r')
-file = ast.parse(r.read())
-
-class astWalk(ast.NodeVisitor): # tarvrse all the nodes in the ast tree
-    def visit_Module(self,node): # get the names of the functions and variables that are defined in a module or a file
-        self.names = []
-        self.functions = []
-        self.generic_visit(node) # itrate over a node and all if its children
-        #print('variables: ',self.names)
-        #print('functions: ',self.functions)
-    def visit_Name(self, node):
-        self.names.append(node.id)
-    def visit_FunctionDef(self, node):
-        function_name = [node.name]
-        arguments = [argument.arg for argument in node.args.args]
-        tempList = list()
-        tempList.append(node.name)
-        tempList.append(arguments)
-        self.functions.append(tempList)
-
-        jsonData.append({
-            "type": "Function",
-            "name": function_name[0],
-            "parameters": arguments,
-            "line": node.lineno,
-        })
-
-        #print('Start_line: ',node.lineno, 'Last_line: ',node.end_lineno)
-        #print('Start_col ', node.col_offset, 'Last_col: ',node.end_col_offset)
-
-astWalk().visit(file)
-
-r = open('example.py')
-file = r.read()
-
-atok = asttokens.ASTTokens(file, parse=True)
 
 
 def get_tokenz(node): #pass a node and it will return the tokens
@@ -83,16 +47,7 @@ def get_tokenz(node): #pass a node and it will return the tokens
                 i["start"] = tokens[1]
                 i["end"] = tokens[2]
 
-functions = [n for n in ast.walk(atok.tree) if isinstance(n, ast.Module)]
-[get_tokenz(a) for a in functions]
 
-functions = [n for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef)]
-[get_tokenz(a) for a in functions]
-
-with open("example.py","r") as file:
-    code = file.read()
-
-parsedCode = astroid.parse(code)
 
 def getFunctionParent(node):
     stack = list()
@@ -104,14 +59,28 @@ def getFunctionParent(node):
             stack.append(child)
             if isinstance(child,astroid.FunctionDef):
                 functionNodes[child.name] = child.parent.name
+                jsonData.append({
+                    "type": "Function",
+                    "parent": child.parent.name,
+                    "name": child.name,
+                    "parameters": [a.name for a in child.args.args],
+                    "line": child.lineno
+                })
     return functionNodes
 
+
+
+with open("example.py","r") as file:
+    code = file.read()
+
+parsedCode = astroid.parse(code)
 funtionParent = getFunctionParent(parsedCode)
 
-for i in jsonData:
-    for fun, parent in funtionParent.items():
-        if i["name"] == fun:
-            i["parent"] = parent
+
+atok = asttokens.ASTTokens(code, parse=True)
+
+[get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.Module)]#gets tokens for module
+[get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef)]#gets tokens for functions
 
 print("[")
 for i in jsonData:
