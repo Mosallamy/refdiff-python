@@ -42,6 +42,7 @@ file = r.read()
 
 atok = asttokens.ASTTokens(file, parse=True)
 
+
 def get_tokenz(node): #pass a node and it will return the tokens
     tokens = []
     if isinstance(node, ast.Module):
@@ -67,10 +68,34 @@ def get_tokenz(node): #pass a node and it will return the tokens
             if i["name"] == node.name:
                 i["start"] = tokens[1]
                 i["end"] = tokens[2]
-functions = [n for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef)]
 
+functions = [n for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef)]
 [get_tokenz(a) for a in functions]
-print("[")
+
+with open("example.py","r") as file:
+    code = file.read()
+
+parsedCode = astroid.parse(code)
+
+def getFunctionParent(node):
+    stack = list()
+    stack.append(node)
+    functionNodes = dict()
+    while(stack):
+        currentNode = stack.pop()
+        for child in currentNode.get_children():
+            stack.append(child)
+            if isinstance(child,astroid.FunctionDef):
+                functionNodes[child.name] = child.parent.name
+    return functionNodes
+
+funtionParent = getFunctionParent(parsedCode)
+
+for i in jsonData:
+    for fun, parent in funtionParent.items():
+        if i["name"] == fun:
+            i["parent"] = parent
+
 for i in jsonData:
     print(" {")
     for key,value in i.items():
