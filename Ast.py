@@ -46,14 +46,28 @@ atok = asttokens.ASTTokens(file, parse=True)
 def get_tokenz(node): #pass a node and it will return the tokens
     tokens = []
     if isinstance(node, ast.Module):
+        isStart = True
+        line = 0
         a = atok.get_tokens(node,include_extra=True)
         for i in a:
-            tokens.append(str(i.startpos)+'-'+str(i.endpos)+'-'+str(i.start[0]))
-        print(tokens)
+            if isStart:
+                line = i.start[0]
+                isStart = False
+            tokens.append([i.startpos,i.endpos])
+        jsonData.append({
+            "type" : "File",
+            "start" : tokens[0][0],
+            "end": tokens[-1][1],
+            "line": line,
+            "name": "",
+            "parent": "null",
+            "tokens": [t for t in tokens]
+        })
+
     else:
         a = atok.get_tokens(node,include_extra=True)
         isStart = True
-        startToken = end = line = 0
+        startToken = endToken = line = 0
         tokens.append(node.name)
         for i in a:
             if isStart:
@@ -68,6 +82,9 @@ def get_tokenz(node): #pass a node and it will return the tokens
             if i["name"] == node.name:
                 i["start"] = tokens[1]
                 i["end"] = tokens[2]
+
+functions = [n for n in ast.walk(atok.tree) if isinstance(n, ast.Module)]
+[get_tokenz(a) for a in functions]
 
 functions = [n for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef)]
 [get_tokenz(a) for a in functions]
@@ -96,6 +113,7 @@ for i in jsonData:
         if i["name"] == fun:
             i["parent"] = parent
 
+print("[")
 for i in jsonData:
     print(" {")
     for key,value in i.items():
