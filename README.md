@@ -1,9 +1,21 @@
 # RefDiff Python - Plugin
 
+## Installation
+
+- Clone [RefDiff](https://github.com/aserg-ufmg/RefDiff/)
+- Edit `settings.gradle` and include `refdiff-python` at end.
+- Run `gradlew eclipse`
+
 ## Parser
 
+- Install dependencies
+
 ```
-usage: Ast.py [-h] -f FILE [-p]
+pip install -r requirements.txt
+```
+
+```
+usage: parser.py [-h] -f FILE [-p]
 
 RefDiff parser for Python programming language
 
@@ -16,5 +28,5 @@ optional arguments:
 Example of usage
 
 ```
-./Ast.py --file example.py --pretty
+./parser.py --file example.py --pretty
 ```
