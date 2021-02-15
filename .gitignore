@@ -1,4 +1,16 @@
-.DS_Store
+# Java
+/bin/
+/build/
+/.gradle/
+/.settings/
+.classpath
+.project
+/node_modules
+out/
+bin/
+gradle/
+
+# Python
 .env
 .flaskenv
 *.pyc
