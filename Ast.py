@@ -1,10 +1,19 @@
+#!/usr/bin/env python3
+
+import sys
 import ast
 import json
 import asttokens
 import astroid
+import argparse
 
 
 jsonData = list()
+
+parser = argparse.ArgumentParser(description='RefDiff parser for Python programming language')
+parser.add_argument('-f', '--file', help='input file', type=str, required=True)
+parser.add_argument('-p', '--pretty', help='output json in pretty format', action='store_true')
+args = parser.parse_args()
 
 
 def get_tokenz(node): #pass a node and it will return the tokens
@@ -17,7 +26,7 @@ def get_tokenz(node): #pass a node and it will return the tokens
             if isStart:
                 line = i.start[0]
                 isStart = False
-            tokens.append([i.startpos,i.endpos])
+            tokens.append("{}-{}".format(i.startpos,i.endpos))
         jsonData.append({
             "type" : "File",
             "start" : tokens[0][0],
@@ -93,7 +102,7 @@ def getFunctionParent(node):
 
 
 
-with open("example.py","r") as file:
+with open(args.file, "r") as file:
     code = file.read()
 
 parsedCode = astroid.parse(code)
@@ -106,10 +115,5 @@ atok = asttokens.ASTTokens(code, parse=True)
 [get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef)]#gets tokens for functions
 [get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.ClassDef)]#gets tokens for functions
 
-print("[")
-for i in jsonData:
-    print(" {")
-    for key,value in i.items():
-        print("     ",key, ":", value)
-    print(" }")
-print("]")
+ident = 2 if args.pretty else None
+print(json.dumps(jsonData, indent=ident))
