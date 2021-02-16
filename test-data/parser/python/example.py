@@ -3,6 +3,6 @@ class test:
         c = a + b
         return c
 
-def multi(q,w):
-    e = q*w
-    return e
+    def multi(q,w):
+        e = q*w
+        return e
