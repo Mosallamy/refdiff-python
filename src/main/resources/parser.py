@@ -31,7 +31,7 @@ def get_tokenz(node):  # pass a node and it will return the tokens
             "name": file_name[1],
             "line": line,
             "namespace": path[1],
-            "parent": "null",
+            "parent": None,
             "start": tokens[0].split('-')[0],
             "end": tokens[-1].split('-')[1],
             "tokens": [t for t in tokens]
@@ -94,7 +94,7 @@ def getFunctionParent(node):
         currentNode = stack.pop()
         for child in currentNode.get_children():
             stack.append(child)
-            has_body = "True"
+            has_body = True
             try:
                 if child.body:
                     # Remove comments if you consider a function with just pass had no body
@@ -102,7 +102,7 @@ def getFunctionParent(node):
                     #    has_body="False"
                     pass
             except:
-                has_body = "False"
+                has_body = False
             if isinstance(child, astroid.FunctionDef):
                 functionNodes[child.name] = child.parent.name
                 jsonData.append({
@@ -142,18 +142,17 @@ def getFunctionParent(node):
 
 file_name = os.path.split(args.file)  # file_name[0] = path to file name, file_name[1] = file name
 path = os.path.split(file_name[0])  # path[1] = namespace
-
 with open(args.file, "r") as file:
     code = file.read()
+
+atok = asttokens.ASTTokens(code, parse=True)
+[get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.Module)]  # gets tokens for module
 
 parsedCode = astroid.parse(code, file_name[1])
 getFunctionParent(parsedCode)
 
-atok = asttokens.ASTTokens(code, parse=True)
-
-[get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.Module)]  # gets tokens for module
-[get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef)]  # gets tokens for functions
-[get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.ClassDef)]  # gets tokens for functions
+[get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef) or isinstance(n, ast.ClassDef)]  # gets tokens for functions
 
 ident = 2 if args.pretty else None
 print(json.dumps(jsonData, indent=ident))
+
