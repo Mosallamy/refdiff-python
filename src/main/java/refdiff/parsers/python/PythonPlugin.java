@@ -33,7 +33,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			return parser;
 		}
 
-		return PythonPlugin.class.getClassLoader().getResource("parser_test.py").getPath(); // TODO load dependencies in Java
+		return PythonPlugin.class.getClassLoader().getResource("parser.py").getPath(); // TODO load dependencies in Java
 	}
 
 	public Node[] execParser(String rootFolder, String path) throws IOException {
