@@ -26,20 +26,19 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 		this.tempDir = tempDir;
 		this.parserPath = this.getParserPath();
 	}
-	
+
 	public String getParserPath() {
 		String parser = System.getenv("REFDIFF_PYTHON_PARSER");
 		if (parser != null && !parser.isEmpty()) {
 			return parser;
 		}
-	
-		return PythonPlugin.class.getClassLoader().getResource("parser.py").getPath(); // TODO load dependencies in Java
+
+		return PythonPlugin.class.getClassLoader().getResource("parser_test.py").getPath(); // TODO load dependencies in Java
 	}
 
 	public Node[] execParser(String rootFolder, String path) throws IOException {
 		ProcessBuilder builder = new ProcessBuilder(parserPath,	"--file", Paths.get(rootFolder, path).toString());
 		Process proc = builder.start();
-
 		Node[] nodes = new Node[0];
 		try {
 			ObjectMapper mapper = new ObjectMapper();
@@ -136,7 +135,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			if (parent != null) {
 				sourceFolder = parent.getPath();
 			}
-
+			/*
 			for (SourceFile file : sources.getFilesFromPath(Paths.get(sourceFolder))) {
 				if (!isValidPythonFile(file.getPath())) {
 					continue;
@@ -144,6 +143,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 
 				additionalFiles.add(file);
 			}
+			 */
 		}
 
 		sources.getSourceFiles().addAll(additionalFiles);
@@ -170,13 +170,14 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 				Node[] astNodes = this.execParser(rootFolder.toString(), sourceFile.getPath());
 				for (Node node : astNodes) {
 					node.setId(nodeCounter++);
+					System.out.println(node.getType() + " - " + node.getName());
 
 					if (node.getType().equals(NodeType.FILE)) {
 						root.addTokenizedFile(tokenizeSourceFile(node, sources, sourceFile));
 					}
 
 					CstNode cstNode = toCSTNode(node, sourceFile.getPath());
-
+					System.out.println("CST: "+cstNode);
 					// save parent information
 					nodeByAddress.put(node.getAddress(), cstNode);
 					if (node.getParent() != null) {
@@ -222,7 +223,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 
 			updateChildrenNodes(root, nodeByAddress, fallbackByAddress, childrenByAddress);
 			updateFunctionCalls(root, nodeByAddress, fallbackByAddress, functionCalls);
-
+			System.out.println("Rooot: "+root.getNodes());
 			return root;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -250,10 +251,10 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			List<Parameter> parameters = new ArrayList<>();
 			for (String name : node.getParametersNames()) {
 				parameters.add(new Parameter(name));
-			}			
+			}
 			cstNode.setParameters(parameters);
 		}
-		
+
 		if (node.getType().equals(NodeType.FUNCTION)) {
 			String localName = String.format("%s(%s)", node.getName(), String.join(",", node.getParameterTypes()));
 			if (node.getReceiver() != null && !node.getReceiver().isEmpty()) {
@@ -269,9 +270,10 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 
 	@Override
 	public FilePathFilter getAllowedFilesFilter() {
-		List<String> ignoreFiles = Arrays.asList("_test.py", "");
-		return new FilePathFilter(Arrays.asList(".py"), ignoreFiles);
+		List<String> ignoreFiles = Arrays.asList("");
+		return new FilePathFilter(Arrays.asList(".py"));
 	}
+
 
 	@Override
 	public void close() {}
