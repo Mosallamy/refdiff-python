@@ -110,7 +110,7 @@ def getFunctionParent(node):
                     "name": child.name,
                     "parameter_names": [a.name for a in child.args.args],
                     "parent": child.parent.name,
-                    "namespace": path[1],
+                    "namespace": None,
                     "function_calls": list(),
                     "line": child.lineno,
                     "has_body": has_body
@@ -119,9 +119,9 @@ def getFunctionParent(node):
                 jsonData.append({
                     "type": "Class",
                     "name": child.name,
-                    "parameter_names": ['None'],
+                    "parameter_names": [None],
                     "parent": child.parent.name,
-                    "namespace": path[1],
+                    "namespace": None,
                     "line": child.lineno,
                     "has_body": has_body
                 })
