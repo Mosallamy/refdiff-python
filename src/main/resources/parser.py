@@ -30,7 +30,7 @@ def get_tokenz(node):  # pass a node and it will return the tokens
             "type": "File",
             "name": file_name[1],
             "line": line,
-            "namespace": path[1],
+            "namespace": "",
             "parent": None,
             "start": tokens[0].split('-')[0],
             "end": tokens[-1].split('-')[1],
@@ -110,7 +110,7 @@ def getFunctionParent(node):
                     "name": child.name,
                     "parameter_names": [a.name for a in child.args.args],
                     "parent": child.parent.name,
-                    "namespace": None,
+                    "namespace": "",
                     "function_calls": list(),
                     "line": child.lineno,
                     "has_body": has_body
@@ -121,7 +121,7 @@ def getFunctionParent(node):
                     "name": child.name,
                     "parameter_names": [None],
                     "parent": child.parent.name,
-                    "namespace": None,
+                    "namespace": "",
                     "line": child.lineno,
                     "has_body": has_body
                 })
