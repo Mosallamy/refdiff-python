@@ -134,16 +134,14 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			String sourceFolder = "";
 			if (parent != null) {
 				sourceFolder = parent.getPath();
-			}
-			/*
-			for (SourceFile file : sources.getFilesFromPath(Paths.get(sourceFolder))) {
-				if (!isValidPythonFile(file.getPath())) {
-					continue;
-				}
+				for (SourceFile file : sources.getFilesFromPath(Paths.get(sourceFolder))) {
+					if (!isValidPythonFile(file.getPath())) {
+						continue;
+					}
 
-				additionalFiles.add(file);
+					additionalFiles.add(file);
+				}
 			}
-			 */
 		}
 
 		sources.getSourceFiles().addAll(additionalFiles);
@@ -170,14 +168,12 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 				Node[] astNodes = this.execParser(rootFolder.toString(), sourceFile.getPath());
 				for (Node node : astNodes) {
 					node.setId(nodeCounter++);
-					System.out.println(node.getType() + " - " + node.getName());
 
 					if (node.getType().equals(NodeType.FILE)) {
 						root.addTokenizedFile(tokenizeSourceFile(node, sources, sourceFile));
 					}
 
 					CstNode cstNode = toCSTNode(node, sourceFile.getPath());
-					System.out.println("CST: "+cstNode);
 					// save parent information
 					nodeByAddress.put(node.getAddress(), cstNode);
 					if (node.getParent() != null) {
@@ -223,7 +219,6 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 
 			updateChildrenNodes(root, nodeByAddress, fallbackByAddress, childrenByAddress);
 			updateFunctionCalls(root, nodeByAddress, fallbackByAddress, functionCalls);
-			System.out.println("Rooot: "+root.getNodes());
 			return root;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
