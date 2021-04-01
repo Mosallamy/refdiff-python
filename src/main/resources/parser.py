@@ -30,7 +30,7 @@ def get_tokenz(node):  # pass a node and it will return the tokens
             "type": "File",
             "name": file_name[1],
             "line": line,
-            "namespace": "",
+            "namespace": file_name[0]+"\\",
             "parent": None,
             "start": tokens[0].split('-')[0],
             "end": tokens[-1].split('-')[1],
@@ -41,7 +41,10 @@ def get_tokenz(node):  # pass a node and it will return the tokens
         isStart = True
         startToken = endToken = line = 0
         tokens.append(node.name)
+        bodyBegin = 0
         for i in a:
+            if (i.string == '(' or i.string == ':') and bodyBegin == 0:
+                bodyBegin = i.startpos
             if isStart:
                 startToken = i.startpos
                 line = i.start[0]
@@ -54,6 +57,8 @@ def get_tokenz(node):  # pass a node and it will return the tokens
             if i["name"] == node.name:
                 i["start"] = tokens[1]
                 i["end"] = tokens[2]
+                i["bodyBegin"] = bodyBegin
+                i["bodyEnd"] = tokens[2]
 
 
 def get_all_functions(node):
@@ -110,7 +115,7 @@ def getFunctionParent(node):
                     "name": child.name,
                     "parameter_names": [a.name for a in child.args.args],
                     "parent": child.parent.name,
-                    "namespace": "",
+                    "namespace": '',
                     "function_calls": list(),
                     "line": child.lineno,
                     "has_body": has_body
@@ -121,7 +126,7 @@ def getFunctionParent(node):
                     "name": child.name,
                     "parameter_names": [None],
                     "parent": child.parent.name,
-                    "namespace": "",
+                    "namespace": '',
                     "line": child.lineno,
                     "has_body": has_body
                 })
@@ -152,6 +157,11 @@ parsedCode = astroid.parse(code, file_name[1])
 getFunctionParent(parsedCode)
 
 [get_tokenz(n) for n in ast.walk(atok.tree) if isinstance(n, ast.FunctionDef) or isinstance(n, ast.ClassDef)]  # gets tokens for functions
+
+for i in jsonData:
+    if i['type']=="Function":
+        if not i['function_calls']:
+            i['function_calls'] = None
 
 ident = 2 if args.pretty else None
 print(json.dumps(jsonData, indent=ident))
