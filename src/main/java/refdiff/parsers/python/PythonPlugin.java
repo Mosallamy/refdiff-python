@@ -55,11 +55,12 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 		return nodes;
 	}
 
+
 	private void updateChildrenNodes(CstRoot root, Map<String, CstNode> nodeByAddress, Map<String, CstNode> fallbackByAddress,
 									 Map<String, HashSet<String>> childrenByAddress) {
 
 		for (Map.Entry<String, HashSet<String>> parent : childrenByAddress.entrySet()) {
-			if (!nodeByAddress.containsKey(parent.getKey())) {
+			if (!nodeByAddress.containsKey(parent.getKey()) ) {
 
 				// check nodes in fallbacks and add to root
 				CstNode fallbackNode = fallbackByAddress.get(parent.getKey());
@@ -129,11 +130,12 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			}
 
 			sourceFiles.add(sourceFile);
-
 			File parent = new File(sourceFile.getPath()).getParentFile();
+
 			String sourceFolder = "";
 			if (parent != null) {
 				sourceFolder = parent.getPath();
+				System.out.println(sourceFolder);
 				for (SourceFile file : sources.getFilesFromPath(Paths.get(sourceFolder))) {
 					if (!isValidPythonFile(file.getPath())) {
 						continue;
@@ -164,12 +166,20 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			int nodeCounter = 1;
 
 			for (SourceFile sourceFile : sourceFiles) {
+				String temp = Paths.get(rootFolder.toString(),sourceFile.getPath()).toString();
+				String temp1 = temp.substring(temp.indexOf("/")+1);
+				System.out.println("1: "+temp1);
+				String[] arrOfStr = temp1.split("-");
+				temp1 = arrOfStr[0]+"/";
+				System.out.println("2: "+temp1);
 				fileProcessed.put(sourceFile.getPath(), true);
+
 				Node[] astNodes = this.execParser(rootFolder.toString(), sourceFile.getPath());
 				for (Node node : astNodes) {
 					node.setId(nodeCounter++);
 
 					if (node.getType().equals(NodeType.FILE)) {
+						node.setNamespace(temp1);
 						root.addTokenizedFile(tokenizeSourceFile(node, sources, sourceFile));
 					}
 
@@ -177,24 +187,20 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 					// save parent information
 					nodeByAddress.put(node.getAddress(), cstNode);
 					if (node.getParent() != null) {
+						node.setNamespace(null);
 						// initialize if key not present
-						if (!childrenByAddress.containsKey(node.getParent())) {
-							childrenByAddress.put(node.getParent(), new HashSet<>());
-						}
-
-						childrenByAddress.get(node.getParent()).add(node.getAddress());
+						childrenByAddress= AddtoArraylist(childrenByAddress, temp1, node);
 					}
 
 					// save call graph information
 					if (node.getType().equals(NodeType.FUNCTION) && node.getFunctionCalls() != null) {
 						// initialize if key not present
-						if (!functionCalls.containsKey(node.getAddress())) {
-							functionCalls.put(node.getAddress(), new HashSet<>());
-						}
-						functionCalls.get(node.getAddress()).addAll(node.getFunctionCalls());
+						functionCalls= AddtoArraylist(functionCalls, temp1, node);
 					}
 
-					root.addNode(cstNode);
+					if(node.getType().equals(NodeType.FILE)) {
+						root.addNode(cstNode);
+					}
 				}
 			}
 
@@ -225,12 +231,29 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 		}
 	}
 
+	private Map<String, HashSet<String>> AddtoArraylist(Map<String, HashSet<String>> arraylist, String temp1, Node node){
+		if (!arraylist.containsKey(temp1+node.getParent())) {
+			if(node.getParent().contains(".py"))
+				arraylist.put(temp1+node.getParent(), new HashSet<>());
+			else if(!node.getParent().contains(".py"))
+				arraylist.put(node.getParent(), new HashSet<>());
+		}
+		if(node.getParent().contains(".py"))
+			arraylist.get(temp1+node.getParent()).add(node.getAddress());
+		else
+			arraylist.get(node.getParent()).add(node.getAddress());
+		return arraylist;
+	}
+
 	private CstNode toCSTNode(Node node, String filePath) {
 		CstNode cstNode = new CstNode(node.getId());
 		cstNode.setType(node.getType());
 		cstNode.setSimpleName(node.getName());
-		cstNode.setNamespace(node.getNamespace());
-		cstNode.setLocation(new Location(filePath, node.getStart(), node.getEnd(), node.getLine()));
+		if(node.getType().equals("File"))
+			cstNode.setNamespace(node.getNamespace());
+		else
+			cstNode.setNamespace(null);
+		cstNode.setLocation(new Location(filePath, node.getStart(), node.getEnd(), node.getLine(), node.getBodyBegin(), node.getBodyEnd()));
 
 		if (node.getType().equals(NodeType.CLASS)) {
 			cstNode.getStereotypes().add(Stereotype.TYPE_MEMBER);
