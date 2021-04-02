@@ -33,11 +33,13 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			return parser;
 		}
 
-		return PythonPlugin.class.getClassLoader().getResource("parser.py").getPath(); // TODO load dependencies in Java
+		return PythonPlugin.class.getClassLoader().getResource("parser.py").getPath();
 	}
 
 	public Node[] execParser(String rootFolder, String path) throws IOException {
 		ProcessBuilder builder = new ProcessBuilder(parserPath,	"--file", Paths.get(rootFolder, path).toString());
+		Map<String, String> env = builder.environment();
+        env.put("PYTHONPATH", PythonPlugin.class.getClassLoader().getResource("dependencies").getPath());
 		Process proc = builder.start();
 		Node[] nodes = new Node[0];
 		try {
@@ -111,7 +113,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 	}
 
 	private boolean isValidPythonFile(String path) {
-		return path.endsWith(".py") && !path.endsWith("_example.go") &&	!path.endsWith("_test.go");
+		return path.endsWith(".py");
 	}
 
 	@Override

@@ -5,6 +5,7 @@ import refdiff.core.RefDiff;
 import refdiff.core.cst.TokenPosition;
 import refdiff.core.diff.CstDiff;
 import refdiff.core.diff.Relationship;
+import refdiff.core.io.GitHelper;
 import refdiff.parsers.python.PythonPlugin;
 
 public class RefDiffExamplePythonlang {
@@ -18,38 +19,16 @@ public class RefDiffExamplePythonlang {
 
         // Creates a RefDiff instance configured with the Go plugin.
 
-        try (PythonPlugin goPlugin = new PythonPlugin(tempFolder)) {
+        try (PythonPlugin pythonPlugin = new PythonPlugin(tempFolder)) {
 
-            RefDiff refDiffGo = new RefDiff(goPlugin);
-
-            /*
-            ArrayList<File> files= new ArrayList<>();
-            files.add(refDiffGo.cloneGitRepository(
-                    new File(tempFolder, "uyeyehhf"),
-                    "https://github.com/wtforms/wtforms.git"));
-
-            files.add(refDiffGo.cloneGitRepository(
-                    new File(tempFolder, "QassemNa/python-refactoring-example.git"),
-                    "https://github.com/QassemNa/python-refactoring-example.git"));
-
-            for(File repo : files) {
-                System.out.println("Starting a new Repo"+repo.getName());
-                refDiffGo.computeDiffForCommitHistory(repo, 3, (commit, diff) -> {
-                    printRefactorings("Refactorings found in Refactoring example " + commit.getId().name(), diff);
-                });
-
-
-            }
-            */
-
+            RefDiff refDiffPython = new RefDiff(pythonPlugin);
+            
             //remove the comments above to find refactorings from all the commits in repo, then comment the below code
-            File repo = refDiffGo.cloneGitRepository(
-                    new File(tempFolder, "sfdadfs"),
-                    "https://github.com/Mosallamy/python_refactoring_examples.git");
-            CstDiff diffForCommit = refDiffGo.computeDiffForCommit(repo, "b7225ce959d14ed4f8ab5fa1d0707cb53ec36748");
-            printRefactorings("Refactorings found in Python-refactoring-example 2f9137d5c06681ec885fb44a553e426c171bdd57", diffForCommit);
-
-
+            File repo = refDiffPython.cloneGitRepository(new File(tempFolder, "refactoring-python-example.git"), "https://github.com/rodrigo-brito/refactoring-python-example.git");
+ 
+            refDiffPython.computeDiffForCommitHistory(repo, 1000000, (rev, diff) -> {
+    			printRefactorings(String.format("Refactorings from %s", rev), diff);
+    		});
         }
     }
 
