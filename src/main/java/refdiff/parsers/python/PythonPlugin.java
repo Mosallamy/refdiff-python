@@ -200,9 +200,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 						functionCalls= AddtoArraylist(functionCalls, temp1, node);
 					}
 
-					if(node.getType().equals(NodeType.FILE)) {
-						root.addNode(cstNode);
-					}
+					root.addNode(cstNode);
 				}
 			}
 
