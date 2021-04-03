@@ -232,6 +232,9 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 	}
 
 	private Map<String, HashSet<String>> AddtoArraylist(Map<String, HashSet<String>> arraylist, String temp1, Node node){
+		if(!node.getParent().contains(".py")){
+			temp1 = "";
+		}
 		if (!arraylist.containsKey(temp1+node.getParent())) {
 			if(node.getParent().contains(".py"))
 				arraylist.put(temp1+node.getParent(), new HashSet<>());
