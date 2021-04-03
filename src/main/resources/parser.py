@@ -20,12 +20,13 @@ def get_tokenz(node):  # pass a node and it will return the tokens
     if isinstance(node, ast.Module):
         isStart = True
         line = 0
-        a = atok.get_tokens(node, include_extra=True)
+        a = atok.get_tokens(node, include_extra=False)
         for i in a:
             if isStart:
                 line = i.start[0]
                 isStart = False
-            tokens.append("{}-{}".format(i.startpos, i.endpos))
+            if i.string.strip() and i.string != "\n": # not empty token
+                tokens.append("{}-{}".format(i.startpos, i.endpos))
         jsonData.append({
             "type": "File",
             "name": file_name[1],
@@ -34,10 +35,10 @@ def get_tokenz(node):  # pass a node and it will return the tokens
             "parent": None,
             "start": tokens[0].split('-')[0],
             "end": tokens[-1].split('-')[1],
-            "tokens": [t for t in tokens]
+            "tokens": tokens
         })
     else:
-        a = atok.get_tokens(node, include_extra=True)
+        a = atok.get_tokens(node, include_extra=False)
         isStart = True
         startToken = endToken = line = 0
         tokens.append(node.name)
