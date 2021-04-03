@@ -170,10 +170,8 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			for (SourceFile sourceFile : sourceFiles) {
 				String temp = Paths.get(rootFolder.toString(),sourceFile.getPath()).toString();
 				String temp1 = temp.substring(temp.indexOf("/")+1);
-				System.out.println("1: "+temp1);
 				String[] arrOfStr = temp1.split("-");
 				temp1 = arrOfStr[0]+"/";
-				System.out.println("2: "+temp1);
 				fileProcessed.put(sourceFile.getPath(), true);
 
 				Node[] astNodes = this.execParser(rootFolder.toString(), sourceFile.getPath());
@@ -200,7 +198,9 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 						functionCalls= AddtoArraylist(functionCalls, temp1, node);
 					}
 
-					root.addNode(cstNode);
+					if(node.getType().equals(NodeType.FILE)) {
+						root.addNode(cstNode);
+					}
 				}
 			}
 
