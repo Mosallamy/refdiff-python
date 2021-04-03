@@ -17,8 +17,7 @@ public class RefDiffExamplePythonlang {
         // This is a temp folder to clone or checkout git repositories.
         File tempFolder = new File("temp");
 
-        // Creates a RefDiff instance configured with the Go plugin.
-
+        // Creates a RefDiff instance configured with the Python plugin.
         try (PythonPlugin pythonPlugin = new PythonPlugin(tempFolder)) {
 
             RefDiff refDiffPython = new RefDiff(pythonPlugin);
