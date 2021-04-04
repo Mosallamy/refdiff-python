@@ -14,6 +14,8 @@ public class Node {
 	private int id;
 	private int start;
 	private int end;
+	private int bodyBegin;
+	private int bodyEnd;
 	private int line;
 	private String name;
 	private String type;
@@ -124,6 +126,14 @@ public class Node {
 		return end;
 	}
 
+	public int getBodyBegin() {
+		return bodyBegin;
+	}
+
+	public int getBodyEnd() {
+		return bodyEnd;
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -144,6 +154,16 @@ public class Node {
 	@JsonSetter("end")
 	public void setEnd(int end) {
 		this.end = end;
+	}
+
+	@JsonSetter("bodyBegin")
+	public void setBodyBegin(int bodyBegin) {
+		this.bodyBegin = bodyBegin;
+	}
+
+	@JsonSetter("bodyEnd")
+	public void setBodyEnd(int bodyEnd) {
+		this.bodyEnd = bodyEnd;
 	}
 
 	@JsonSetter("name")
@@ -201,6 +221,6 @@ public class Node {
 	}
 
 	public String getAddress() {
-		return this.namespace+this.name;
+		return this.namespace + this.name;
 	}
 }

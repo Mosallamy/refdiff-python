@@ -17,14 +17,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class PythonPlugin implements LanguagePlugin, Closeable {
 	private File tempDir = null;
 	private String parserPath;
+	private String envpath;
 
 	public PythonPlugin() throws Exception {
-		this.parserPath = this.getParserPath();
+		this.parserPath = "C:\\Users\\Asper\\Projects\\Git\\RefDiff\\refdiff-python\\src\\main\\resources\\parser.py";
+		this.envpath = "C:\\Users\\Asper\\Projects\\Git\\RefDiff\\refdiff-python\\venv\\Scripts\\python.exe";
 	}
 
 	public PythonPlugin(File tempDir) {
 		this.tempDir = tempDir;
-		this.parserPath = this.getParserPath();
+		this.parserPath = "C:\\Users\\Asper\\Projects\\Git\\RefDiff\\refdiff-python\\src\\main\\resources\\parser.py";
+		this.envpath = "C:\\Users\\Asper\\Projects\\Git\\RefDiff\\refdiff-python\\venv\\Scripts\\python.exe";
 	}
 
 	public String getParserPath() {
@@ -37,7 +40,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 	}
 
 	public Node[] execParser(String rootFolder, String path) throws IOException {
-		ProcessBuilder builder = new ProcessBuilder(parserPath,	"--file", Paths.get(rootFolder, path).toString());
+		ProcessBuilder builder = new ProcessBuilder(envpath, parserPath,"-f", Paths.get(rootFolder, path).toString());
 		Process proc = builder.start();
 		Node[] nodes = new Node[0];
 		try {
@@ -59,7 +62,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 									 Map<String, HashSet<String>> childrenByAddress) {
 
 		for (Map.Entry<String, HashSet<String>> parent : childrenByAddress.entrySet()) {
-			if (!nodeByAddress.containsKey(parent.getKey())) {
+			if (!nodeByAddress.containsKey(parent.getKey()) ) {
 
 				// check nodes in fallbacks and add to root
 				CstNode fallbackNode = fallbackByAddress.get(parent.getKey());
@@ -110,7 +113,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 	}
 
 	private boolean isValidPythonFile(String path) {
-		return path.endsWith(".py") && !path.endsWith("_example.go") &&	!path.endsWith("_test.go");
+		return path.endsWith(".py");
 	}
 
 	@Override
@@ -129,21 +132,20 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			}
 
 			sourceFiles.add(sourceFile);
-
 			File parent = new File(sourceFile.getPath()).getParentFile();
+
 			String sourceFolder = "";
 			if (parent != null) {
 				sourceFolder = parent.getPath();
-			}
-			/*
-			for (SourceFile file : sources.getFilesFromPath(Paths.get(sourceFolder))) {
-				if (!isValidPythonFile(file.getPath())) {
-					continue;
-				}
+				//System.out.println(sourceFolder);
+				for (SourceFile file : sources.getFilesFromPath(Paths.get(sourceFolder), this.tempDir)) {
+					if (!isValidPythonFile(file.getPath())) {
+						continue;
+					}
 
-				additionalFiles.add(file);
+					additionalFiles.add(file);
+				}
 			}
-			 */
 		}
 
 		sources.getSourceFiles().addAll(additionalFiles);
@@ -166,18 +168,23 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 			int nodeCounter = 1;
 
 			for (SourceFile sourceFile : sourceFiles) {
+				String temp = Paths.get(rootFolder.toString(),sourceFile.getPath()).toString();
+				String temp1 = temp.substring(temp.indexOf("\\")+1);
+				//System.out.println("1: "+temp1);
+				String[] arrOfStr = temp1.split("-");
+				temp1 = arrOfStr[0]+"\\";
+				//System.out.println("2: "+temp1);
 				fileProcessed.put(sourceFile.getPath(), true);
+
 				Node[] astNodes = this.execParser(rootFolder.toString(), sourceFile.getPath());
 				for (Node node : astNodes) {
 					node.setId(nodeCounter++);
-					System.out.println(node.getType() + " - " + node.getName());
 
 					if (node.getType().equals(NodeType.FILE)) {
 						root.addTokenizedFile(tokenizeSourceFile(node, sources, sourceFile));
 					}
 
 					CstNode cstNode = toCSTNode(node, sourceFile.getPath());
-					System.out.println("CST: "+cstNode);
 					// save parent information
 					nodeByAddress.put(node.getAddress(), cstNode);
 					if (node.getParent() != null) {
@@ -197,8 +204,10 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 						}
 						functionCalls.get(node.getAddress()).addAll(node.getFunctionCalls());
 					}
+					if (node.getType().equals(NodeType.FILE)) {
+						root.addNode(cstNode);
+					}
 
-					root.addNode(cstNode);
 				}
 			}
 
@@ -223,11 +232,18 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 
 			updateChildrenNodes(root, nodeByAddress, fallbackByAddress, childrenByAddress);
 			updateFunctionCalls(root, nodeByAddress, fallbackByAddress, functionCalls);
-			System.out.println("Rooot: "+root.getNodes());
 			return root;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private Map<String, HashSet<String>> AddtoArraylist(Map<String, HashSet<String>> arraylist, String temp1, Node node){
+		if (!arraylist.containsKey(node.getAddress())) {
+				arraylist.put(node.getAddress(), new HashSet<>());
+		}
+		arraylist.get(node.getAddress()).add(node.getAddress());
+		return arraylist;
 	}
 
 	private CstNode toCSTNode(Node node, String filePath) {
@@ -235,7 +251,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 		cstNode.setType(node.getType());
 		cstNode.setSimpleName(node.getName());
 		cstNode.setNamespace(node.getNamespace());
-		cstNode.setLocation(new Location(filePath, node.getStart(), node.getEnd(), node.getLine()));
+		cstNode.setLocation(new Location(filePath, node.getStart(), node.getEnd(), node.getLine(), node.getBodyBegin(), node.getBodyEnd()));
 
 		if (node.getType().equals(NodeType.CLASS)) {
 			cstNode.getStereotypes().add(Stereotype.TYPE_MEMBER);
