@@ -195,7 +195,12 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 					// save call graph information
 					if (node.getType().equals(NodeType.FUNCTION) && node.getFunctionCalls() != null) {
 						// initialize if key not present
-						functionCalls= AddtoArraylist(functionCalls, temp1, node);
+						for (String functionname : node.getFunctionCalls()) {
+							if (!functionCalls.containsKey(functionname)) {
+									functionCalls.put(functionname, new HashSet<>());
+							}
+								functionCalls.get(functionname).add(node.getAddress());
+						}
 					}
 
 					if(node.getType().equals(NodeType.FILE)) {
