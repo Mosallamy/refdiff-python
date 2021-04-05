@@ -221,6 +221,16 @@ public class Node {
 	}
 
 	public String getAddress() {
-		return this.namespace + this.name;
+		if(this.namespace.endsWith("/"))
+			return this.namespace+this.name;
+		else
+			return this.namespace +'/'+ this.name;
+	}
+	public String getParentAddress() {
+		return this.parent;
+		//if(this.namespace.endsWith("/"))
+		//	return this.namespace+this.parent;
+		//else
+		//	return this.namespace +'/'+ this.parent;
 	}
 }

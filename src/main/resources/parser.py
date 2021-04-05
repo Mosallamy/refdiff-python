@@ -21,22 +21,28 @@ def get_tokenz(node):  # pass a node and it will return the tokens
         isStart = True
         line = 0
         a = atok.get_tokens(node, include_extra=False)
+        hasbody= False
         for i in a:
             if isStart:
                 line = i.start[0]
                 isStart = False
             if i.string.strip() and i.string != "\n": # not empty token
                 tokens.append("{}-{}".format(i.startpos, i.endpos))
+        if int(tokens[-1].split('-')[1])>0:
+            hasbody =True
         jsonData.append({
             "type": "File",
             "name": file_name[1],
             "function_calls": list(),
             "line": line,
-            "namespace": "/",
+            "namespace": '',
             "parent": None,
             "start": tokens[0].split('-')[0],
             "end": tokens[-1].split('-')[1],
-            "tokens": tokens
+            "tokens": tokens,
+            "bodyBegin" : int(tokens[0].split('-')[0]),
+            "bodyEnd" : int(tokens[-1].split('-')[1]),
+            "has_body": hasbody
         })
     else:
         a = atok.get_tokens(node, include_extra=False)
@@ -105,19 +111,33 @@ def addFunction2JSON(node, key, value):
         pass
 
 
+def addSlash(text1, text2):
+    try:
+        string = ""
+        if not text1.startswith('/'):
+            text1= '/{0}'.format(text1)
+        if (text2.startswith('/')) or (text1.endswith('/')):
+            string = text1 +""+ text2
+            return string
+        else:
+            if text2=="":
+                string = text1
+            else:
+                string = text1+'/'+text2
+            return string
+    except:
+        pass
+
 def searchnamespace(node, namespace =""):
     try:
         parent = node.parent
         if isinstance(parent, astroid.Module):
-            if namespace=="":
-                namespace = "/"+file_name[1]
-            else:
-                namespace = "/"+file_name[1] + "/" + namespace
+            namespace = addSlash(file_name[1],namespace)
             return namespace
 
         if isinstance(parent, astroid.ClassDef):
             node = parent
-            namespace = node.name+'/'+namespace
+            namespace = addSlash(node.name, namespace)
             namespace = searchnamespace(node, namespace)
             return namespace
 
@@ -149,7 +169,7 @@ def getFunctionParent(node):
                     "type": "Function",
                     "name": child.name,
                     "parameter_names": [a.name for a in child.args.args],
-                    "parent": "/"+child.parent.name,
+                    "parent": searchnamespace(child),
                     "namespace": searchnamespace(child),
                     "function_calls": list(),
                     "line": child.lineno,
@@ -160,7 +180,7 @@ def getFunctionParent(node):
                     "type": "Class",
                     "name": child.name,
                     "parameter_names": [None],
-                    "parent": "/"+child.parent.name,
+                    "parent": searchnamespace(child),
                     "namespace": searchnamespace(child),
                     "line": child.lineno,
                     "has_body": has_body
@@ -180,7 +200,7 @@ def getFunctionParent(node):
                         if isinstance(parent, astroid.FunctionDef) or isinstance(parent, astroid.Module):
 
                             for i in jsonData:
-                                temp = searchnamespace(index)+name
+                                temp = addSlash(searchnamespace(index),name)
                                 if i['name'] == parent.name and (temp not in i['function_calls']):
                                     a = i['function_calls']
                                     i['function_calls'] = a + [temp]

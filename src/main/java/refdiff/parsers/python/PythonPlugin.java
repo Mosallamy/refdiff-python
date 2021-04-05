@@ -136,15 +136,15 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 
 			String sourceFolder = "";
 			if (parent != null) {
-				sourceFolder = parent.getPath();
+				//sourceFolder = parent.getPath();
 				//System.out.println(sourceFolder);
-				for (SourceFile file : sources.getFilesFromPath(Paths.get(sourceFolder), this.tempDir)) {
-					if (!isValidPythonFile(file.getPath())) {
-						continue;
-					}
+				//for (SourceFile file : sources.getFilesFromPath(Paths.get(sourceFolder), this.tempDir)) {
+				//	if (!isValidPythonFile(file.getPath())) {
+				//		continue;
+				//	}
 
-					additionalFiles.add(file);
-				}
+				//	additionalFiles.add(file);
+				//}
 			}
 		}
 
@@ -169,10 +169,10 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 
 			for (SourceFile sourceFile : sourceFiles) {
 				String temp = Paths.get(rootFolder.toString(),sourceFile.getPath()).toString();
-				String temp1 = temp.substring(temp.indexOf("\\")+1);
+				String temp1 = temp.substring(temp.indexOf("/")+1);
 				//System.out.println("1: "+temp1);
 				String[] arrOfStr = temp1.split("-");
-				temp1 = arrOfStr[0]+"\\";
+				temp1 = arrOfStr[0]+"/";
 				//System.out.println("2: "+temp1);
 				fileProcessed.put(sourceFile.getPath(), true);
 
@@ -189,15 +189,15 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 					nodeByAddress.put(node.getAddress(), cstNode);
 					if (node.getParent() != null) {
 						// initialize if key not present
-						if (!childrenByAddress.containsKey(node.getParent())) {
-							childrenByAddress.put(node.getParent(), new HashSet<>());
+						if (!childrenByAddress.containsKey(node.getParentAddress())) {
+							childrenByAddress.put(node.getParentAddress(), new HashSet<>());
 						}
 
-						childrenByAddress.get(node.getParent()).add(node.getAddress());
+						childrenByAddress.get(node.getParentAddress()).add(node.getAddress());
 					}
 
 					// save call graph information
-					if (node.getType().equals(NodeType.FUNCTION) && node.getFunctionCalls() != null) {
+					if ((node.getType().equals(NodeType.FUNCTION) || node.getType().equals(NodeType.FILE)) && node.getFunctionCalls() != null) {
 						// initialize if key not present
 						if (!functionCalls.containsKey(node.getAddress())) {
 							functionCalls.put(node.getAddress(), new HashSet<>());
