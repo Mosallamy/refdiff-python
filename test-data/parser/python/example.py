@@ -1,17 +1,20 @@
-from calculator import Calculator
+class newme:
+    class Nani:
+        pass
+    def printOwing1(self, a, b):
+        # print details
 
-def isEven(value):
-	return value % 2 == 0
+        print("name:", a)
+        self.print_amount1(b)
+        return a
 
-def printIsEven(value):
-	if isEven(value):
-		print("even")
-	else:
-		print("odd")
-calculator = Calculator()
-print("1 + 2 = ", calculator.summary(1, 2))
-print("2 x 2 = ", calculator.multiply(2, 2))
-print("2 is = ",)
-printIsEven(2)
-print("3 is = ",)
-printIsEven(3)
+    def print_amount1(self, b):
+        while b:
+            print("amount", b)
+            b=0
+def normal(a):
+    a.printOwing1("sad", 45)
+    print("yolo")
+a= newme
+normal(a)
+a.printOwing1("sad", 45)
