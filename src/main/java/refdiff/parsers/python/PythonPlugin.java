@@ -189,7 +189,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 					if (node.getParent() != null) {
 						node.setNamespace(null);
 						// initialize if key not present
-						childrenByAddress= AddtoArraylist(childrenByAddress, temp1, node);
+						childrenByAddress = AddtoArraylist(childrenByAddress, temp1, node);
 					}
 
 					// save call graph information
@@ -282,7 +282,7 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 		}
 
 		if (node.getType().equals(NodeType.FUNCTION)) {
-			String localName = String.format("%s(%s)", node.getName(), String.join(",", node.getParameterTypes()));
+			String localName = String.format("%s(%s)", node.getName(), String.join(",", node.getParametersNames()));
 			if (node.getReceiver() != null && !node.getReceiver().isEmpty()) {
 				localName = String.format("%s.%s", node.getReceiver(), localName);
 			}
@@ -296,10 +296,8 @@ public class PythonPlugin implements LanguagePlugin, Closeable {
 
 	@Override
 	public FilePathFilter getAllowedFilesFilter() {
-		List<String> ignoreFiles = Arrays.asList("");
 		return new FilePathFilter(Arrays.asList(".py"));
 	}
-
 
 	@Override
 	public void close() {}
