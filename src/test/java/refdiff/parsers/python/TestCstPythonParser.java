@@ -15,8 +15,6 @@ import refdiff.core.cst.CstNode;
 import refdiff.core.cst.CstRoot;
 import refdiff.core.diff.CstRootHelper;
 import refdiff.core.io.SourceFolder;
-import refdiff.parsers.python.NodeType;
-import refdiff.parsers.python.PythonPlugin;
 import refdiff.test.util.PythonParserSingleton;
 
 public class TestCstPythonParser {
@@ -46,12 +44,18 @@ public class TestCstPythonParser {
 		CstNode sumFunctionNode = classNode.getNodes().get(0);
 		assertThat(sumFunctionNode.getType(), is(NodeType.FUNCTION));
 		assertThat(sumFunctionNode.getSimpleName(), is("sum"));
-		assertThat(sumFunctionNode.getParent(), is(classNode));
+		assertThat(sumFunctionNode.getLocalName(), is("sum(a,b)"));
+		assertThat(sumFunctionNode.getParameters().get(0).getName(), is("a"));
+		assertThat(sumFunctionNode.getParameters().get(1).getName(), is("b"));
+		assertThat(sumFunctionNode.getParent().get().getLocalName(), is(classNode.getLocalName()));
 
 		CstNode multiFunctionNode = classNode.getNodes().get(1);
 		assertThat(multiFunctionNode.getType(), is(NodeType.FUNCTION));
 		assertThat(multiFunctionNode.getSimpleName(), is("multi"));
-		assertThat(multiFunctionNode.getParent(), is(classNode));
+		assertThat(multiFunctionNode.getLocalName(), is("multi(q,w)"));
+		assertThat(multiFunctionNode.getParameters().get(0).getName(), is("q"));
+		assertThat(multiFunctionNode.getParameters().get(1).getName(), is("w"));
+		assertThat(multiFunctionNode.getParent().get().getLocalName(), is(classNode.getLocalName()));
 	}
 	
 	@Test
